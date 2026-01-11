@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-layout">
+
+    <aside class="editor-panel">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step-dots">
+                <span class="dot active" data-step="1"></span>
+                <span class="dot" data-step="2"></span>
+                <span class="dot" data-step="3"></span>
+                <span class="dot" data-step="4"></span>
+            </div>
+            <span class="step-label">Step <span id="currentStepNum">1</span> of 4</span>
+        </div>
+
+        <!-- Step 1: Your Company -->
+        <div class="step-content active" data-step="1">
+            <h1>Your company</h1>
+
+            <div class="form-group">
+                <div class="input-row">
+                    <label for="company-email">Email</label>
+                    <input type="email" id="company-email" placeholder="contact@example.com">
+                </div>
+                <p class="helper-text">We'll fill the billing details automatically if we find the company.</p>
+            </div>
+
+            <div class="section-title">Billing details</div>
+
+            <div class="details-list">
+                <div class="input-row">
+                    <label for="company-name">Company name</label>
+                    <input type="text" id="company-name" placeholder="Your Company">
+                </div>
+                <div class="input-row">
+                    <label for="company-logo">Logo</label>
+                    <input type="text" id="company-logo" maxlength="2" placeholder="P" class="input-small">
+                </div>
+                <div class="input-row">
+                    <label for="company-address">Address</label>
+                    <input type="text" id="company-address" placeholder="Street address">
+                </div>
+                <div class="input-row">
+                    <label for="company-city">City</label>
+                    <input type="text" id="company-city" placeholder="City">
+                </div>
+                <div class="input-row">
+                    <label for="company-state">State</label>
+                    <input type="text" id="company-state" placeholder="State">
+                </div>
+                <div class="input-row">
+                    <label for="company-zip">Zip</label>
+                    <input type="text" id="company-zip" placeholder="00000">
+                </div>
+                <div class="input-row">
+                    <label for="company-country">Country</label>
+                    <input type="text" id="company-country" placeholder="Country">
+                </div>
+                <div class="input-row border-none">
+                    <label for="company-tax-id">Tax ID</label>
+                    <input type="text" id="company-tax-id" placeholder="Optional">
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Your Client -->
+        <div class="step-content" data-step="2">
+            <h1>Your client</h1>
+
+            <div class="form-group">
+                <div class="input-row">
+                    <label for="client-email">Email</label>
+                    <input type="email" id="client-email" placeholder="contact@example.com">
+                </div>
+                <p class="helper-text">We'll fill the billing details automatically if we find the company.</p>
+            </div>
+
+            <div class="section-title">Billing details</div>
+
+            <div class="details-list">
+                <div class="input-row">
+                    <label for="client-name">Company name</label>
+                    <input type="text" id="client-name" placeholder="Client Company">
+                </div>
+                <div class="input-row">
+                    <label for="client-logo">Logo</label>
+                    <input type="text" id="client-logo" maxlength="2" placeholder="C" class="input-small">
+                </div>
+                <div class="input-row">
+                    <label for="client-address">Address</label>
+                    <input type="text" id="client-address" placeholder="Street address">
+                </div>
+                <div class="input-row">
+                    <label for="client-city">City</label>
+                    <input type="text" id="client-city" placeholder="City">
+                </div>
+                <div class="input-row">
+                    <label for="client-state">State</label>
+                    <input type="text" id="client-state" placeholder="State">
+                </div>
+                <div class="input-row">
+                    <label for="client-zip">Zip</label>
+                    <input type="text" id="client-zip" placeholder="00000">
+                </div>
+                <div class="input-row">
+                    <label for="client-country">Country</label>
+                    <input type="text" id="client-country" placeholder="Country">
+                </div>
+                <div class="input-row border-none">
+                    <label for="client-tax-id">Tax ID</label>
+                    <input type="text" id="client-tax-id" placeholder="Optional">
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Invoice Details -->
+        <div class="step-content" data-step="3">
+            <h1>Invoice details</h1>
+
+            <p class="helper-text" style="margin-bottom: 16px;">Select an invoice currency</p>
+
+            <div class="form-group">
+                <div class="input-row">
+                    <label for="currency">Currency</label>
+                    <label class="currency-select-wrapper" for="currency">
+                        <span class="currency-flag" id="currency-flag">🇺🇸</span>
+                        <select id="currency">
+                            <option value="USD" data-flag="🇺🇸" selected>USD</option>
+                            <option value="EUR" data-flag="🇪🇺">EUR</option>
+                            <option value="GBP" data-flag="🇬🇧">GBP</option>
+                            <option value="COP" data-flag="🇨🇴">COP</option>
+                            <option value="CAD" data-flag="🇨🇦">CAD</option>
+                            <option value="AUD" data-flag="🇦🇺">AUD</option>
+                            <option value="MXN" data-flag="🇲🇽">MXN</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-title">Items</div>
+
+            <div id="line-items-container">
+                <!-- Line items will be rendered here by JS -->
+            </div>
+
+            <button type="button" id="add-item-btn" class="btn-secondary">
+                <span class="plus-icon">+</span> Add item
+            </button>
+
+            <div class="section-title">Note</div>
+            <div class="form-group">
+                <textarea id="invoice-note" rows="3" placeholder="More details of the invoice here..."></textarea>
+            </div>
+
+            <button type="button" id="more-options-toggle" class="btn-text">
+                <span class="toggle-icon">▶</span> More options
+            </button>
+
+            <div id="more-options" class="more-options hidden">
+                <div class="section-title">Discount</div>
+                <div class="input-row">
+                    <label for="discount-type">Type</label>
+                    <select id="discount-type">
+                        <option value="none">No discount</option>
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed amount</option>
+                    </select>
+                </div>
+                <div class="input-row hidden" id="discount-value-row">
+                    <label for="discount-value">Amount</label>
+                    <input type="number" id="discount-value" placeholder="0" min="0" step="0.01">
+                </div>
+
+                <div class="section-title">Tax</div>
+                <div class="input-row">
+                    <label for="tax-enabled">Enable tax</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="tax-enabled">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="input-row hidden" id="tax-rate-row">
+                    <label for="tax-rate">Tax rate (%)</label>
+                    <input type="number" id="tax-rate" placeholder="0" min="0" max="100" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Invoice Terms -->
+        <div class="step-content" data-step="4">
+            <h1>Invoice terms</h1>
+
+            <div class="details-list">
+                <div class="input-row">
+                    <label for="invoice-number">Invoice number</label>
+                    <input type="text" id="invoice-number" placeholder="0001">
+                </div>
+                <div class="input-row">
+                    <label>Issue date</label>
+                    <div class="date-picker-wrapper" id="issue-date-picker">
+                        <button type="button" class="date-picker-trigger" id="issue-date-trigger">
+                            <span class="date-text" id="issue-date-text">Select date</span>
+                            <svg class="date-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+                                <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <div class="date-picker-dropdown" id="issue-date-dropdown"></div>
+                    </div>
+                    <input type="hidden" id="issue-date">
+                </div>
+                <div class="input-row border-none">
+                    <label>Due date</label>
+                    <div class="date-picker-wrapper" id="due-date-picker">
+                        <button type="button" class="date-picker-trigger" id="due-date-trigger">
+                            <span class="date-text" id="due-date-text">Select date</span>
+                            <svg class="date-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+                                <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <div class="date-picker-dropdown" id="due-date-dropdown"></div>
+                    </div>
+                    <input type="hidden" id="due-date">
+                </div>
+            </div>
+
+            <div class="section-title">Custom footer</div>
+            <div class="form-group">
+                <textarea id="custom-footer" rows="2" placeholder="Powered by Your Company"></textarea>
+            </div>
+
+            <button type="button" id="download-pdf-btn" class="btn-primary">
+                Download PDF
+            </button>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="step-navigation">
+            <button type="button" id="prev-btn" class="nav-btn nav-btn-back hidden">
+                <span class="nav-top">
+                    <span class="nav-arrow">&lsaquo;</span>
+                    <span class="nav-label">Back</span>
+                </span>
+                <span class="nav-step-name" id="prev-step-name">Your company</span>
+            </button>
+            <button type="button" id="next-btn" class="nav-btn nav-btn-next">
+                <span class="nav-top">
+                    <span class="nav-label">Next</span>
+                    <span class="nav-arrow">&rsaquo;</span>
+                </span>
+                <span class="nav-step-name" id="next-step-name">Your client</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="preview-area">
+        <div class="invoice-paper" id="invoice-preview">
+
+            <!-- Section: Invoice Terms (Step 4) -->
+            <div class="preview-section" data-step="4" id="section-terms">
+                <div class="section-highlight">
+                    <div class="corner top-left"></div>
+                    <div class="corner top-right"></div>
+                    <div class="corner bottom-left"></div>
+                    <div class="corner bottom-right"></div>
+                    <span class="section-badge"><span class="badge-number">4</span> Invoice terms</span>
+                </div>
+                <div class="invoice-meta">
+                    <div class="meta-group">
+                        <label>INVOICE NO</label>
+                        <div id="preview-invoice-number">0001</div>
+                    </div>
+                    <div class="meta-right">
+                        <div class="meta-group">
+                            <label>ISSUED</label>
+                            <div id="preview-issue-date">-</div>
+                        </div>
+                        <div class="meta-group">
+                            <label>DUE DATE</label>
+                            <div id="preview-due-date">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="addresses">
+                <!-- Section: Your Company (Step 1) -->
+                <div class="preview-section" data-step="1" id="section-company">
+                    <div class="section-highlight">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                        <span class="section-badge"><span class="badge-number">1</span> Your company</span>
+                    </div>
+                    <div class="address-col">
+                        <label class="section-label">FROM</label>
+                        <div class="avatar-circle" id="preview-company-logo">P</div>
+                        <h2 id="preview-company-name">Your Company</h2>
+                        <p class="email-link" id="preview-company-email">contact@example.com</p>
+                        <address id="preview-company-address">
+                            Address line<br>
+                            City, State ZIP<br>
+                            Country
+                        </address>
+                    </div>
+                </div>
+
+                <div class="addresses-divider"></div>
+
+                <!-- Section: Your Client (Step 2) -->
+                <div class="preview-section" data-step="2" id="section-client">
+                    <div class="section-highlight">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                        <span class="section-badge"><span class="badge-number">2</span> Your client</span>
+                    </div>
+                    <div class="address-col">
+                        <label class="section-label">TO</label>
+                        <div class="avatar-placeholder" id="preview-client-logo">C</div>
+                        <h2 id="preview-client-name">Client Company</h2>
+                        <p class="email-link" id="preview-client-email">client@example.com</p>
+                        <address id="preview-client-address">
+                            Address line<br>
+                            City, State ZIP<br>
+                            Country
+                        </address>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Section: Invoice Details (Step 3) -->
+            <div class="preview-section" data-step="3" id="section-details">
+                <div class="section-highlight">
+                    <div class="corner top-left"></div>
+                    <div class="corner top-right"></div>
+                    <div class="corner bottom-left"></div>
+                    <div class="corner bottom-right"></div>
+                    <span class="section-badge"><span class="badge-number">3</span> Invoice details</span>
+                </div>
+                <div class="line-items">
+                    <div class="table-header">
+                        <span>DESCRIPTION</span>
+                        <span class="text-right">QTY</span>
+                        <span class="text-right">PRICE</span>
+                        <span class="text-right">AMOUNT</span>
+                    </div>
+                    <div id="preview-line-items">
+                        <!-- Line items rendered by JS -->
+                    </div>
+                </div>
+
+                <hr class="light">
+
+                <div class="totals-section">
+                    <div class="notes">
+                        <label>Note</label>
+                        <p id="preview-note">-</p>
+                    </div>
+                    <div class="calculations">
+                        <div class="calc-row">
+                            <span>Subtotal</span>
+                            <span id="preview-subtotal">£0.00</span>
+                        </div>
+                        <div class="calc-row hidden" id="preview-discount-row">
+                            <span id="preview-discount-label">Discount</span>
+                            <span id="preview-discount">-£0.00</span>
+                        </div>
+                        <div class="calc-row hidden" id="preview-tax-row">
+                            <span id="preview-tax-label">Tax (0%)</span>
+                            <span id="preview-tax">£0.00</span>
+                        </div>
+                        <div class="calc-row border-top">
+                            <span>Total</span>
+                            <span class="grand-total" id="preview-total">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="watermark" id="preview-watermark">
+                Powered by <strong>Pixoagency.com</strong>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
