@@ -1,14 +1,20 @@
 // Invoice Generator - Main Application
 
+// API base URL - use relative path for Netlify Functions
+const API_BASE = '/.netlify/functions/notion';
+
+// Cached clients from Notion
+let notionClients = [];
+
 // Currency symbols mapping
 const CURRENCY_SYMBOLS = {
     USD: '$',
     EUR: '€',
     GBP: '£',
-    COP: '$',
-    CAD: 'C$',
-    AUD: 'A$',
-    MXN: '$'
+    COP: 'COP$',
+    CAD: 'CAD$',
+    AUD: 'AUD$',
+    MXN: 'MXN$'
 };
 
 // Step names for navigation
@@ -35,6 +41,7 @@ const state = {
         taxId: ''
     },
     client: {
+        id: null, // Notion page ID if selected from saved clients
         email: '',
         name: '',
         logo: '',
@@ -79,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setDefaultDates();
     generateInvoiceNumber();
     updatePreviewSections();
+    loadClientsFromNotion(); // Load saved clients
 });
 
 // Cache DOM elements for performance
@@ -102,6 +110,11 @@ function cacheElements() {
     elements.companyZip = document.getElementById('company-zip');
     elements.companyCountry = document.getElementById('company-country');
     elements.companyTaxId = document.getElementById('company-tax-id');
+
+    // Client selector (Notion integration)
+    elements.clientSelector = document.getElementById('client-selector');
+    elements.refreshClientsBtn = document.getElementById('refresh-clients-btn');
+    elements.saveClientBtn = document.getElementById('save-client-btn');
 
     // Client fields
     elements.clientEmail = document.getElementById('client-email');
@@ -135,6 +148,7 @@ function cacheElements() {
     elements.dueDate = document.getElementById('due-date');
     elements.customFooter = document.getElementById('custom-footer');
     elements.downloadPdfBtn = document.getElementById('download-pdf-btn');
+    elements.saveInvoiceBtn = document.getElementById('save-invoice-btn');
 
     // Custom date picker elements
     elements.issueDateTrigger = document.getElementById('issue-date-trigger');
@@ -269,6 +283,12 @@ function setupEventListeners() {
 
     // Download PDF
     elements.downloadPdfBtn.addEventListener('click', downloadPDF);
+
+    // Notion integration
+    elements.clientSelector.addEventListener('change', handleClientSelection);
+    elements.refreshClientsBtn.addEventListener('click', loadClientsFromNotion);
+    elements.saveClientBtn.addEventListener('click', saveClientToNotion);
+    elements.saveInvoiceBtn.addEventListener('click', saveInvoiceToNotion);
 
     // Preview section clicks (navigate to step)
     elements.previewSections.forEach(section => {
@@ -824,4 +844,217 @@ function renderDatePicker(id, dropdown, textEl, onSelect) {
             onSelect(dateStr);
         });
     });
+}
+
+// ==========================================
+// NOTION INTEGRATION
+// ==========================================
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Load clients from Notion
+async function loadClientsFromNotion() {
+    const refreshBtn = elements.refreshClientsBtn;
+    refreshBtn.classList.add('loading');
+
+    try {
+        const response = await fetch(`${API_BASE}?action=getClients`);
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        notionClients = data.clients || [];
+        renderClientSelector();
+
+        if (notionClients.length > 0) {
+            showToast(`Loaded ${notionClients.length} client(s) from Notion`);
+        }
+    } catch (error) {
+        console.error('Error loading clients:', error);
+        showToast('Could not load clients from Notion', 'error');
+    } finally {
+        refreshBtn.classList.remove('loading');
+    }
+}
+
+// Render client selector dropdown
+function renderClientSelector() {
+    const select = elements.clientSelector;
+
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+
+    // Add client options
+    notionClients.forEach(client => {
+        const option = document.createElement('option');
+        option.value = client.id;
+        option.textContent = client.name || 'Unnamed Client';
+        select.appendChild(option);
+    });
+}
+
+// Handle client selection from dropdown
+function handleClientSelection(e) {
+    const clientId = e.target.value;
+
+    if (!clientId) {
+        // "Select a client..." was chosen, clear fields
+        state.client.id = null;
+        return;
+    }
+
+    const client = notionClients.find(c => c.id === clientId);
+    if (!client) return;
+
+    // Populate client fields
+    state.client.id = client.id;
+    state.client.name = client.name || '';
+    state.client.email = client.email || '';
+    state.client.address = client.address || '';
+    state.client.city = client.city || '';
+    state.client.zip = client.zipCode || '';
+    state.client.country = client.country || '';
+
+    // Update form fields
+    elements.clientName.value = state.client.name;
+    elements.clientEmail.value = state.client.email;
+    elements.clientAddress.value = state.client.address;
+    elements.clientCity.value = state.client.city;
+    elements.clientZip.value = state.client.zip;
+    elements.clientCountry.value = state.client.country;
+
+    // Update preview
+    updatePreview();
+
+    showToast(`Loaded client: ${client.name}`);
+}
+
+// Save current client to Notion
+async function saveClientToNotion() {
+    const btn = elements.saveClientBtn;
+    const originalText = btn.innerHTML;
+
+    // Validate that we have at least a name
+    if (!state.client.name.trim()) {
+        showToast('Please enter a client name first', 'error');
+        return;
+    }
+
+    btn.classList.add('btn-loading');
+    btn.innerHTML = 'Saving...';
+
+    try {
+        const response = await fetch(`${API_BASE}?action=createClient`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: state.client.name,
+                email: state.client.email,
+                address: state.client.address,
+                city: state.client.city,
+                zipCode: state.client.zip,
+                country: state.client.country
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Update client ID with the new Notion page ID
+        state.client.id = data.client.id;
+
+        // Refresh the client list
+        await loadClientsFromNotion();
+
+        // Select the newly created client
+        elements.clientSelector.value = data.client.id;
+
+        showToast(`Client "${state.client.name}" saved to Notion!`);
+    } catch (error) {
+        console.error('Error saving client:', error);
+        showToast('Could not save client to Notion', 'error');
+    } finally {
+        btn.classList.remove('btn-loading');
+        btn.innerHTML = originalText;
+    }
+}
+
+// Save invoice to Notion
+async function saveInvoiceToNotion() {
+    const btn = elements.saveInvoiceBtn;
+    const originalHTML = btn.innerHTML;
+
+    btn.classList.add('btn-loading');
+    btn.innerHTML = 'Saving...';
+
+    try {
+        // Format line items as text
+        const lineItemsText = state.lineItems
+            .filter(item => item.description)
+            .map(item => `${item.description} (${item.quantity} x ${formatCurrency(item.price)})`)
+            .join('\n');
+
+        const subtotal = calculateSubtotal();
+        const discount = calculateDiscount(subtotal);
+        const subtotalAfterDiscount = subtotal - discount;
+        const taxAmount = calculateTax(subtotalAfterDiscount);
+        const total = subtotalAfterDiscount + taxAmount;
+
+        const invoiceData = {
+            invoiceNumber: state.invoice.number || 'INV-0001',
+            clientId: state.client.id || null,
+            issueDate: state.invoice.issueDate,
+            dueDate: state.invoice.dueDate,
+            lineItems: lineItemsText,
+            subtotal: subtotal,
+            taxRate: state.tax.enabled ? state.tax.rate : 0,
+            taxAmount: taxAmount,
+            total: total,
+            currency: state.invoice.currency,
+            status: 'Draft',
+            notes: state.invoice.note,
+            customFooter: state.invoice.customFooter
+        };
+
+        const response = await fetch(`${API_BASE}?action=saveInvoice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(invoiceData)
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        showToast(`Invoice ${state.invoice.number} saved to Notion!`);
+    } catch (error) {
+        console.error('Error saving invoice:', error);
+        showToast('Could not save invoice to Notion', 'error');
+    } finally {
+        btn.classList.remove('btn-loading');
+        btn.innerHTML = originalHTML;
+    }
 }

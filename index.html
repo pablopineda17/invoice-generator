@@ -81,10 +81,27 @@
 
             <div class="form-group">
                 <div class="input-row">
+                    <label for="client-selector">Saved clients</label>
+                    <div class="client-selector-wrapper">
+                        <select id="client-selector">
+                            <option value="">Select a client...</option>
+                        </select>
+                        <button type="button" id="refresh-clients-btn" class="icon-btn" title="Refresh clients">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M8 2V5L10.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="helper-text">Select a saved client or enter details below.</p>
+            </div>
+
+            <div class="form-group">
+                <div class="input-row">
                     <label for="client-email">Email</label>
                     <input type="email" id="client-email" placeholder="contact@example.com">
                 </div>
-                <p class="helper-text">We'll fill the billing details automatically if we find the company.</p>
             </div>
 
             <div class="section-title">Billing details</div>
@@ -123,6 +140,13 @@
                     <input type="text" id="client-tax-id" placeholder="Optional">
                 </div>
             </div>
+
+            <button type="button" id="save-client-btn" class="btn-secondary btn-save-client">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Save client to Notion
+            </button>
         </div>
 
         <!-- Step 3: Invoice Details -->
@@ -240,9 +264,18 @@
                 <textarea id="custom-footer" rows="2" placeholder="Powered by Your Company"></textarea>
             </div>
 
-            <button type="button" id="download-pdf-btn" class="btn-primary">
-                Download PDF
-            </button>
+            <div class="action-buttons">
+                <button type="button" id="download-pdf-btn" class="btn-primary">
+                    Download PDF
+                </button>
+                <button type="button" id="save-invoice-btn" class="btn-secondary btn-notion">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4.5C2 3.12 3.12 2 4.5 2H11.5C12.88 2 14 3.12 14 4.5V11.5C14 12.88 12.88 14 11.5 14H4.5C3.12 14 2 12.88 2 11.5V4.5Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M5 5.5H8M5 8H11M5 10.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    Save to Notion
+                </button>
+            </div>
         </div>
 
         <!-- Navigation Buttons -->
