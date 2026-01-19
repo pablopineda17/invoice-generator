@@ -7,6 +7,50 @@
     --accent-blue: #3B82F6;
     --accent-blue-hover: #2563EB;
     --font-family: 'Inter', sans-serif;
+
+    /* Additional variables for theming */
+    --surface-color: #FFFFFF;
+    --surface-hover: #F3F4F6;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-red: #EF4444;
+    --accent-red-bg: #FEF2F2;
+    --accent-green: #10B981;
+    --preview-dot-color: #D1D5DB;
+
+    /* Invoice paper colors */
+    --invoice-bg: #FFFFFF;
+    --invoice-text: #111827;
+    --invoice-text-secondary: #6B7280;
+    --invoice-text-tertiary: #9CA3AF;
+    --invoice-border: #E5E7EB;
+    --invoice-border-light: #F3F4F6;
+    --invoice-avatar-bg: #E5E7EB;
+}
+
+/* Dark Mode Theme */
+body.dark-mode {
+    --bg-color: #0F172A;
+    --surface-color: #1E293B;
+    --surface-hover: #334155;
+    --border-color: #334155;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-tertiary: #64748B;
+    --accent-blue: #60A5FA;
+    --accent-blue-hover: #3B82F6;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --accent-red: #F87171;
+    --accent-red-bg: #7F1D1D33;
+    --preview-dot-color: #334155;
+
+    /* Invoice paper colors (dark mode preview) */
+    --invoice-bg: #1E293B;
+    --invoice-text: #F1F5F9;
+    --invoice-text-secondary: #94A3B8;
+    --invoice-text-tertiary: #64748B;
+    --invoice-border: #334155;
+    --invoice-border-light: #334155;
+    --invoice-avatar-bg: #334155;
 }
 
 * {
@@ -37,7 +81,7 @@ body {
 /* --- Left Panel (Editor) --- */
 .editor-panel {
     width: 400px;
-    background: #fff;
+    background: var(--surface-color);
     padding: 24px 32px 32px;
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
@@ -220,7 +264,7 @@ body {
     font-size: 14px;
     font-family: inherit;
     color: var(--text-primary);
-    background: #fff;
+    background: var(--surface-color);
     text-align: right;
     cursor: pointer;
     appearance: none;
@@ -245,6 +289,7 @@ textarea {
     font-size: 14px;
     font-family: inherit;
     color: var(--text-primary);
+    background: var(--surface-color);
     resize: vertical;
     min-height: 80px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -272,7 +317,7 @@ textarea::placeholder {
     width: 100%;
     padding: 12px 24px;
     margin-top: 8px;
-    background-color: var(--text-primary);
+    background-color: #111827;
     color: white;
     border: none;
     border-radius: 8px;
@@ -287,9 +332,18 @@ textarea::placeholder {
     background-color: #374151;
 }
 
+body.dark-mode .btn-primary {
+    background-color: #F1F5F9;
+    color: #0F172A;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #E2E8F0;
+}
+
 .btn-secondary {
     padding: 10px 20px;
-    background-color: white;
+    background-color: var(--surface-color);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -408,7 +462,7 @@ textarea::placeholder {
     font-size: 14px;
     font-family: inherit;
     color: var(--text-primary);
-    background: white;
+    background: var(--surface-color);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -450,8 +504,8 @@ textarea::placeholder {
 }
 
 .line-item-row .remove-item-btn:hover {
-    color: #EF4444;
-    background-color: #FEF2F2;
+    color: var(--accent-red);
+    background-color: var(--accent-red-bg);
 }
 
 #add-item-btn {
@@ -540,8 +594,8 @@ textarea::placeholder {
 /* --- Right Panel (Preview Area) --- */
 .preview-area {
     flex-grow: 1;
-    background-color: #F9FAFB;
-    background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
+    background-color: var(--bg-color);
+    background-image: radial-gradient(var(--preview-dot-color) 1px, transparent 1px);
     background-size: 24px 24px;
     display: flex;
     justify-content: center;
@@ -551,11 +605,12 @@ textarea::placeholder {
 
 /* --- Invoice Paper --- */
 .invoice-paper {
-    background: white;
+    background: var(--invoice-bg);
+    color: var(--invoice-text);
     width: 100%;
     max-width: 800px;
     min-height: 1000px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color);
     padding: 40px 50px;
     border-radius: 4px;
     position: relative;
@@ -563,14 +618,14 @@ textarea::placeholder {
     flex-direction: column;
 }
 
-hr {
+.invoice-paper hr {
     border: 0;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--invoice-border);
     margin: 30px 0;
 }
 
-hr.light {
-    border-top: 1px solid #F3F4F6;
+.invoice-paper hr.light {
+    border-top: 1px solid var(--invoice-border-light);
     margin: 20px 0;
 }
 
@@ -590,7 +645,7 @@ hr.light {
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-tertiary);
+    color: var(--invoice-text-tertiary);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -610,14 +665,14 @@ hr.light {
 
 .addresses-divider {
     width: 1px;
-    background-color: var(--border-color);
+    background-color: var(--invoice-border);
     align-self: stretch;
 }
 
 .section-label {
     display: block;
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--invoice-text-tertiary);
     text-transform: uppercase;
     margin-bottom: 20px;
 }
@@ -625,7 +680,7 @@ hr.light {
 .avatar-circle, .avatar-placeholder {
     width: 48px;
     height: 48px;
-    background-color: #F3F4F6;
+    background-color: var(--invoice-avatar-bg);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -633,6 +688,8 @@ hr.light {
     font-size: 20px;
     font-weight: 500;
     margin-bottom: 16px;
+    line-height: 1;
+    text-align: center;
 }
 
 .avatar-placeholder {
@@ -642,6 +699,19 @@ hr.light {
     padding-left: 0;
 }
 
+.avatar-circle.has-image,
+.avatar-placeholder.has-image {
+    background: transparent;
+    overflow: hidden;
+}
+
+.avatar-circle.has-image img,
+.avatar-placeholder.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .address-col h2 {
     font-size: 20px;
     font-weight: 600;
@@ -649,14 +719,14 @@ hr.light {
 }
 
 .email-link {
-    color: var(--text-secondary);
+    color: var(--invoice-text-secondary);
     font-size: 14px;
     margin-bottom: 16px;
 }
 
 address {
     font-style: normal;
-    color: var(--text-secondary);
+    color: var(--invoice-text-secondary);
     font-size: 14px;
     line-height: 1.6;
 }
@@ -670,7 +740,7 @@ address {
 }
 
 .preview-section:hover {
-    background-color: #F9FAFB;
+    background-color: var(--invoice-border-light);
 }
 
 .preview-section .section-highlight {
@@ -716,7 +786,7 @@ address {
     top: -6px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--text-primary);
+    background: #111827;
     color: white;
     padding: 6px 14px;
     border-radius: 20px;
@@ -729,6 +799,15 @@ address {
     opacity: 0;
     transition: opacity 0.2s ease;
     z-index: 10;
+}
+
+body.dark-mode .section-badge {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+body.dark-mode .badge-number {
+    background: rgba(0, 0, 0, 0.15);
 }
 
 .preview-section.active .section-badge {
@@ -773,7 +852,7 @@ address {
 .table-header {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr 1fr;
-    color: var(--text-tertiary);
+    color: var(--invoice-text-tertiary);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -785,7 +864,7 @@ address {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr 1fr;
     padding: 10px 0;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid var(--invoice-border-light);
 }
 
 .table-row:last-child {
@@ -813,14 +892,14 @@ address {
 
 .notes label {
     display: block;
-    color: var(--text-tertiary);
+    color: var(--invoice-text-tertiary);
     font-size: 13px;
     margin-bottom: 8px;
 }
 
 .notes p {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--invoice-text-secondary);
     line-height: 1.5;
     white-space: pre-wrap;
 }
@@ -834,14 +913,14 @@ address {
     justify-content: space-between;
     padding: 10px 0;
     font-size: 14px;
-    color: var(--text-secondary);
+    color: var(--invoice-text-secondary);
 }
 
 .calc-row.border-top {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--invoice-border);
     margin-top: 10px;
     padding-top: 20px;
-    color: var(--text-primary);
+    color: var(--invoice-text);
     font-weight: 600;
     font-size: 18px;
 }
@@ -851,7 +930,7 @@ address {
     margin-top: auto;
     padding-top: 40px;
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--invoice-text-secondary);
 }
 
 /* --- Print / PDF Styles --- */
@@ -900,7 +979,7 @@ address {
     }
 }
 
-/* PDF export mode - hide interactive elements */
+/* PDF export mode - hide interactive elements and force white theme */
 .invoice-paper.pdf-export .section-highlight,
 .invoice-paper.pdf-export .section-badge {
     display: none !important;
@@ -909,6 +988,59 @@ address {
 .invoice-paper.pdf-export .preview-section {
     padding: 0 !important;
     margin: 0 !important;
+}
+
+/* Force white/light colors for PDF export regardless of theme */
+.invoice-paper.pdf-export {
+    background: #FFFFFF !important;
+    color: #111827 !important;
+}
+
+.invoice-paper.pdf-export hr {
+    border-top-color: #E5E7EB !important;
+}
+
+.invoice-paper.pdf-export hr.light {
+    border-top-color: #F3F4F6 !important;
+}
+
+.invoice-paper.pdf-export .meta-group label,
+.invoice-paper.pdf-export .section-label,
+.invoice-paper.pdf-export .table-header,
+.invoice-paper.pdf-export .notes label {
+    color: #9CA3AF !important;
+}
+
+.invoice-paper.pdf-export .email-link,
+.invoice-paper.pdf-export address,
+.invoice-paper.pdf-export .notes p,
+.invoice-paper.pdf-export .calc-row,
+.invoice-paper.pdf-export .watermark {
+    color: #6B7280 !important;
+}
+
+.invoice-paper.pdf-export .calc-row.border-top {
+    border-top-color: #E5E7EB !important;
+    color: #111827 !important;
+}
+
+.invoice-paper.pdf-export .addresses-divider {
+    background-color: #E5E7EB !important;
+}
+
+.invoice-paper.pdf-export .avatar-circle,
+.invoice-paper.pdf-export .avatar-placeholder {
+    background-color: #E5E7EB !important;
+    /* Ensure proper centering in PDF */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 48px !important;
+    text-align: center !important;
+}
+
+.invoice-paper.pdf-export .table-row {
+    border-bottom-color: #F3F4F6 !important;
 }
 
 /* --- Custom Date Picker --- */
@@ -956,9 +1088,9 @@ address {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    background: white;
+    background: var(--surface-color);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 20px var(--shadow-color);
     padding: 20px;
     z-index: 1000;
     min-width: 300px;
@@ -1100,7 +1232,7 @@ address {
     font-size: 14px;
     font-family: inherit;
     color: var(--text-primary);
-    background: #fff;
+    background: var(--surface-color);
     cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
@@ -1118,7 +1250,7 @@ address {
     width: 32px;
     height: 32px;
     border: 1px solid var(--border-color);
-    background: #fff;
+    background: var(--surface-color);
     border-radius: 6px;
     cursor: pointer;
     display: flex;
@@ -1202,12 +1334,12 @@ address {
 }
 
 .toast.success {
-    background: #10B981;
+    background: var(--accent-green);
     color: white;
 }
 
 .toast.error {
-    background: #EF4444;
+    background: var(--accent-red);
     color: white;
 }
 
@@ -1220,4 +1352,50 @@ address {
         transform: translateY(0);
         opacity: 1;
     }
+}
+
+/* --- Theme Toggle Button --- */
+.theme-toggle-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    z-index: 1000;
+}
+
+.theme-toggle-btn:hover {
+    border-color: var(--text-tertiary);
+    color: var(--text-primary);
+    background-color: var(--surface-hover);
+}
+
+.theme-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.theme-toggle-btn .icon-sun {
+    display: none;
+}
+
+.theme-toggle-btn .icon-moon {
+    display: block;
+}
+
+body.dark-mode .theme-toggle-btn .icon-sun {
+    display: block;
+}
+
+body.dark-mode .theme-toggle-btn .icon-moon {
+    display: none;
 }

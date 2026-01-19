@@ -44,8 +44,10 @@ async function getClients() {
     email: page.properties.Email?.email || '',
     address: page.properties.Address?.rich_text?.[0]?.plain_text || '',
     city: page.properties.City?.rich_text?.[0]?.plain_text || '',
+    state: page.properties.State?.rich_text?.[0]?.plain_text || '',
     zipCode: page.properties['Zip Code']?.rich_text?.[0]?.plain_text || '',
-    country: page.properties.Country?.rich_text?.[0]?.plain_text || ''
+    country: page.properties.Country?.rich_text?.[0]?.plain_text || '',
+    logo: page.properties.Logo?.files?.[0]?.file?.url || page.properties.Logo?.files?.[0]?.external?.url || ''
   }));
 
   return { clients };
@@ -60,6 +62,7 @@ async function createClient(clientData) {
       'Email': { email: clientData.email || null },
       'Address': { rich_text: [{ text: { content: clientData.address || '' } }] },
       'City': { rich_text: [{ text: { content: clientData.city || '' } }] },
+      'State': { rich_text: [{ text: { content: clientData.state || '' } }] },
       'Zip Code': { rich_text: [{ text: { content: clientData.zipCode || '' } }] },
       'Country': { rich_text: [{ text: { content: clientData.country || '' } }] }
     }
@@ -76,20 +79,51 @@ async function createClient(clientData) {
 
 // POST /api/notion?action=saveInvoice - Save invoice to Notion
 async function saveInvoice(invoiceData) {
+  // Build properties object - only include fields that have values
   const properties = {
-    'Invoice Number': { title: [{ text: { content: invoiceData.invoiceNumber || '' } }] },
-    'Issue Date': { date: invoiceData.issueDate ? { start: invoiceData.issueDate } : null },
-    'Due Date': { date: invoiceData.dueDate ? { start: invoiceData.dueDate } : null },
-    'Line Items': { rich_text: [{ text: { content: invoiceData.lineItems || '' } }] },
-    'Subtotal': { number: parseFloat(invoiceData.subtotal) || 0 },
-    'Tax Rate': { number: parseFloat(invoiceData.taxRate) || 0 },
-    'Tax Amount': { number: parseFloat(invoiceData.taxAmount) || 0 },
-    'Total': { number: parseFloat(invoiceData.total) || 0 },
-    'Currency': { select: { name: invoiceData.currency || 'USD' } },
-    'Status': { select: { name: invoiceData.status || 'Draft' } },
-    'Notes': { rich_text: [{ text: { content: invoiceData.notes || '' } }] },
-    'Custom Footer': { rich_text: [{ text: { content: invoiceData.customFooter || '' } }] }
+    'Invoice Number': { title: [{ text: { content: invoiceData.invoiceNumber || '' } }] }
   };
+
+  // Add optional date fields
+  if (invoiceData.issueDate) {
+    properties['Issue Date'] = { date: { start: invoiceData.issueDate } };
+  }
+  if (invoiceData.dueDate) {
+    properties['Due Date'] = { date: { start: invoiceData.dueDate } };
+  }
+
+  // Add text fields
+  if (invoiceData.lineItems) {
+    properties['Line Items'] = { rich_text: [{ text: { content: invoiceData.lineItems } }] };
+  }
+  if (invoiceData.notes) {
+    properties['Notes'] = { rich_text: [{ text: { content: invoiceData.notes } }] };
+  }
+  if (invoiceData.customFooter) {
+    properties['Custom Footer'] = { rich_text: [{ text: { content: invoiceData.customFooter } }] };
+  }
+
+  // Add number fields
+  if (invoiceData.subtotal !== undefined) {
+    properties['Subtotal'] = { number: parseFloat(invoiceData.subtotal) || 0 };
+  }
+  if (invoiceData.taxRate !== undefined) {
+    properties['Tax Rate'] = { number: parseFloat(invoiceData.taxRate) || 0 };
+  }
+  if (invoiceData.taxAmount !== undefined) {
+    properties['Tax Amount'] = { number: parseFloat(invoiceData.taxAmount) || 0 };
+  }
+  if (invoiceData.total !== undefined) {
+    properties['Total'] = { number: parseFloat(invoiceData.total) || 0 };
+  }
+
+  // Add select fields
+  if (invoiceData.currency) {
+    properties['Currency'] = { select: { name: invoiceData.currency } };
+  }
+  if (invoiceData.status) {
+    properties['Status'] = { select: { name: invoiceData.status } };
+  }
 
   // Add client relation if provided
   if (invoiceData.clientId) {
@@ -101,9 +135,27 @@ async function saveInvoice(invoiceData) {
     properties
   });
 
+  // Check for errors from Notion
+  if (data.object === 'error') {
+    throw new Error(data.message || 'Failed to create invoice in Notion');
+  }
+
   return {
     success: true,
     invoiceId: data.id
+  };
+}
+
+// Proxy image to avoid CORS issues
+async function proxyImage(imageUrl) {
+  const response = await fetch(imageUrl);
+  const arrayBuffer = await response.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString('base64');
+  const contentType = response.headers.get('content-type') || 'image/png';
+  return {
+    base64,
+    contentType,
+    dataUrl: `data:${contentType};base64,${base64}`
   };
 }
 
@@ -135,11 +187,23 @@ exports.handler = async (event) => {
         result = await saveInvoice(invoiceData);
         break;
 
+      case 'proxyImage':
+        const imageUrl = params.url;
+        if (!imageUrl) {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ error: 'Missing url parameter' })
+          };
+        }
+        result = await proxyImage(imageUrl);
+        break;
+
       default:
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Invalid action. Use: getClients, createClient, or saveInvoice' })
+          body: JSON.stringify({ error: 'Invalid action. Use: getClients, createClient, saveInvoice, or proxyImage' })
         };
     }
 

@@ -44,7 +44,8 @@ const state = {
         id: null, // Notion page ID if selected from saved clients
         email: '',
         name: '',
-        logo: '',
+        logo: '', // Can be initial letter or URL
+        logoUrl: '', // URL from Notion
         address: '',
         city: '',
         state: '',
@@ -79,6 +80,7 @@ const elements = {};
 // Initialize application
 document.addEventListener('DOMContentLoaded', () => {
     cacheElements();
+    loadTheme(); // Load theme before other UI updates
     loadFromLocalStorage();
     setupEventListeners();
     renderLineItems();
@@ -185,10 +187,16 @@ function cacheElements() {
     // Preview sections (clickable areas)
     elements.previewSections = document.querySelectorAll('.preview-section');
     elements.invoicePaper = document.getElementById('invoice-preview');
+
+    // Theme toggle
+    elements.themeToggle = document.getElementById('theme-toggle');
 }
 
 // Setup all event listeners
 function setupEventListeners() {
+    // Theme toggle
+    elements.themeToggle.addEventListener('click', toggleTheme);
+
     // Navigation
     elements.prevBtn.addEventListener('click', goToPrevStep);
     elements.nextBtn.addEventListener('click', goToNextStep);
@@ -497,7 +505,15 @@ function updatePreview() {
     elements.previewCompanyAddress.innerHTML = formatAddress(state.company);
 
     // Client (TO)
-    elements.previewClientLogo.textContent = state.client.logo || state.client.name?.charAt(0) || 'C';
+    if (state.client.logoUrl) {
+        // Show image logo with crossorigin for PDF export
+        elements.previewClientLogo.innerHTML = `<img src="${state.client.logoUrl}" alt="${escapeHtml(state.client.name)}" crossorigin="anonymous" />`;
+        elements.previewClientLogo.classList.add('has-image');
+    } else {
+        // Show initial letter
+        elements.previewClientLogo.textContent = state.client.logo || state.client.name?.charAt(0) || 'C';
+        elements.previewClientLogo.classList.remove('has-image');
+    }
     elements.previewClientName.textContent = state.client.name || 'Client Company';
     elements.previewClientEmail.textContent = state.client.email || 'client@example.com';
     elements.previewClientAddress.innerHTML = formatAddress(state.client, true);
@@ -655,6 +671,36 @@ function loadFromLocalStorage() {
     }
 }
 
+// Theme management
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('invoiceGenerator_theme', isDark ? 'dark' : 'light');
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem('invoiceGenerator_theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+}
+
+// Convert image URL to base64 for PDF export using our proxy
+async function imageToBase64(url) {
+    try {
+        // Use our serverless function to proxy the image and return base64
+        const response = await fetch(`${API_BASE}?action=proxyImage&url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        return data.dataUrl;
+    } catch (error) {
+        console.error('Error converting image to base64:', error);
+        return null;
+    }
+}
+
 // PDF Download using html2pdf.js (loaded dynamically)
 async function downloadPDF() {
     // Show loading state
@@ -672,6 +718,17 @@ async function downloadPDF() {
         const invoiceNumber = state.invoice.number || '0001';
         const clientName = state.client.name || 'Client';
 
+        // Convert client logo to base64 if it's an external URL
+        let originalLogoSrc = null;
+        const logoImg = elements.previewClientLogo.querySelector('img');
+        if (logoImg && state.client.logoUrl) {
+            originalLogoSrc = logoImg.src;
+            const base64Logo = await imageToBase64(state.client.logoUrl);
+            if (base64Logo) {
+                logoImg.src = base64Logo;
+            }
+        }
+
         // Add pdf-export class to hide interactive elements
         invoice.classList.add('pdf-export');
 
@@ -679,7 +736,7 @@ async function downloadPDF() {
             margin: 10,
             filename: `Invoice_${invoiceNumber}_${clientName.replace(/\s+/g, '_')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2, useCORS: true, allowTaint: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
@@ -687,6 +744,11 @@ async function downloadPDF() {
 
         // Remove pdf-export class
         invoice.classList.remove('pdf-export');
+
+        // Restore original logo src if we changed it
+        if (logoImg && originalLogoSrc) {
+            logoImg.src = originalLogoSrc;
+        }
 
         // Save invoice number for next time
         localStorage.setItem('lastInvoiceNumber', parseInt(state.invoice.number) || 1);
@@ -930,14 +992,17 @@ function handleClientSelection(e) {
     state.client.email = client.email || '';
     state.client.address = client.address || '';
     state.client.city = client.city || '';
+    state.client.state = client.state || '';
     state.client.zip = client.zipCode || '';
     state.client.country = client.country || '';
+    state.client.logoUrl = client.logo || '';
 
     // Update form fields
     elements.clientName.value = state.client.name;
     elements.clientEmail.value = state.client.email;
     elements.clientAddress.value = state.client.address;
     elements.clientCity.value = state.client.city;
+    elements.clientState.value = state.client.state;
     elements.clientZip.value = state.client.zip;
     elements.clientCountry.value = state.client.country;
 
@@ -970,6 +1035,7 @@ async function saveClientToNotion() {
                 email: state.client.email,
                 address: state.client.address,
                 city: state.client.city,
+                state: state.client.state,
                 zipCode: state.client.zip,
                 country: state.client.country
             })
@@ -1044,15 +1110,20 @@ async function saveInvoiceToNotion() {
         });
 
         const data = await response.json();
+        console.log('Save invoice response:', data);
 
         if (data.error) {
             throw new Error(data.error);
         }
 
+        if (!data.success) {
+            throw new Error('Failed to save invoice');
+        }
+
         showToast(`Invoice ${state.invoice.number} saved to Notion!`);
     } catch (error) {
         console.error('Error saving invoice:', error);
-        showToast('Could not save invoice to Notion', 'error');
+        showToast(`Error: ${error.message}`, 'error');
     } finally {
         btn.classList.remove('btn-loading');
         btn.innerHTML = originalHTML;
