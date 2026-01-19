@@ -477,7 +477,7 @@ function calculateTotal() {
 // Format currency
 function formatCurrency(amount) {
     const symbol = CURRENCY_SYMBOLS[state.invoice.currency] || '$';
-    return `${symbol}${amount.toFixed(2)}`;
+    return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // Format date for display
